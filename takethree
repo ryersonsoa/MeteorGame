@@ -1,0 +1,138 @@
+#include "LPD8806.h"
+#include "SPI.h"
+
+int clockPin = 3;
+int dataPin = 2;
+
+LPD8806 strip = LPD8806(96, dataPin, clockPin);
+
+unsigned long timerM1=1000, timerM2=1100, timerM3=1300;
+int met1On=0,met2On=1, met3On=0;
+
+int met1[]={
+  0,0};
+int met1Led=100;
+int met2[]={
+  0,0};
+int met2Led=100;
+int met3[]={
+  0,0};
+int met3Led=100;
+int metOn[]={
+  0,0,0};
+int clearLed1=100,clearLed2=100,clearLed3=100;
+
+void clearStrip(){
+  for (int i=0; i<96;i++){
+    strip.setPixelColor(i, 0,0,0);
+  }
+  strip.show();
+}
+
+void setup(){
+  Serial.begin(9600);
+  strip.begin();
+  strip.show();
+  randomSeed(analogRead(0));
+
+}
+
+void loop(){
+
+  //tiggers each meteor to fall
+  if ((millis()%timerM1)>(timerM1/2)&&met1On!=1){
+    met1On=1;
+  }
+  if ((millis()%timerM2)>(timerM2/2)&&met2On!=1){
+    met2On=1;
+  }
+  if ((millis()%timerM3)>(timerM3/2)&&met3On!=1){
+    met3On=1;
+  } 
+
+  //assign leds for each meteor once at the start
+  while(met1Led==100){
+    do{
+      met1[1]=random(0,6);
+    }
+    while(met1[1]%2!=0);
+    met1Led = met1[1]+15+met1[1]*15;
+  }
+
+  while(met2Led==100){
+    do{
+      met2[1]=random(0,6);
+    }
+    while(met2[1]%2==0);
+    met2Led = met2[1]+15+(met2[1]-1)*15;
+  }
+
+  while(met3Led==100){
+    do{
+      met3[1]=random(0,6);
+    }
+    while(met3[1]%2==0);
+    met3Led = met3[1]+15+(met3[1]-1)*15;
+  }
+
+  if (met1On==1&&met1[0]==15){
+    met1On=0;
+    strip.setPixelColor(met1Led,0,0,0);
+    timerM1=0;
+    met1Led=100;
+    met1[0]=0;
+    met1[1]=0;
+  }
+  if (met2On==1&&met2[0]==15){
+    met2On=0;
+    strip.setPixelColor(met2Led,0,0,0);
+    timerM2=0;
+    met2Led=100;
+    met2[0]=0;
+    met2[1]=0;
+  }
+  if (met3On==1&&met3[0]==15){
+    met3On=0;
+    strip.setPixelColor(met3Led,0,0,0);
+    timerM3=0;
+    met3Led=100;
+    met3[0]=0;
+    met3[1]=0;
+  }
+
+  //meteor one
+  if (met1On==1){
+    met1Led=met1Led-1;
+    clearLed1=met1Led+1;
+    met1[0]=met1[0]+1;
+  }
+  //meteor two
+  if (met2On==1){
+    met2Led=met2Led+1;
+    clearLed2=met2Led-1;
+    met2[0]=met2[0]+1;
+  }
+
+  //meteor three
+  if (met3On==1){
+    met3Led=met3Led+1;
+    clearLed3=met3Led-1;
+    met3[0]=met3[0]+1;
+  }
+
+  strip.setPixelColor (met1Led,127,127,127);
+  strip.setPixelColor (met2Led,127,127,127);
+  strip.setPixelColor (met3Led,127,127,127);
+  strip.setPixelColor (clearLed1,0,0,0);
+  strip.setPixelColor (clearLed2,0,0,0);
+  strip.setPixelColor (clearLed3,0,0,0);
+  strip.show();
+  delay(100); 
+
+}
+
+
+
+
+
+
