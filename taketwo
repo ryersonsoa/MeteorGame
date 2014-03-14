@@ -1,0 +1,199 @@
+#include "LPD8806.h"
+#include "SPI.h"
+
+int clockPin = 3;
+int dataPin = 2;
+
+LPD8806 strip = LPD8806(96, dataPin, clockPin);
+
+int met1[]={
+  0,0};
+int met1Led=100;
+int met2[]={
+  0,0};
+int met2Led=100;
+int met3[]={
+  0,0};
+int met3Led=100;
+int metOn[]={
+  0,0,0};
+int numMet=0;
+int maxNumMet=4;
+int clearLed1=100,clearLed2=100,clearLed3=100;
+
+void clearStrip(){
+  for (int i=0; i<96;i++){
+    strip.setPixelColor(i, 0,0,0);
+  }
+  strip.show();
+}
+
+void setup(){
+  Serial.begin(9600);
+  strip.begin();
+  strip.show();
+  randomSeed(analogRead(0));
+  
+}
+
+void loop(){
+  //initialize everything
+  for (int j=0;j<3;j++){
+    metOn[j]=0;
+  }
+  for (int k=0;k<2;k++){
+    met1[k]=0;
+    met2[k]=0;
+    met3[k]=0;
+  }
+  clearLed1=100;
+  clearLed2=100;
+  clearLed3=100;
+  met1Led=100;
+  met2Led=100;
+  met3Led=100;
+  numMet=random (1,maxNumMet);
+  Serial.println("start");
+  delay(1000);
+  Serial.println(numMet);
+  delay(1000);
+  
+  //depending on the number of meteor on, randomly 
+  //decide the column number
+  if (numMet==3){
+    for (int i=0;i<3;i++){
+      metOn[i]=1;
+      Serial.print(metOn[i]);
+    }
+  }
+  else if (numMet==2){
+    for (int i=0;i<2;i++){
+      metOn[i]=1;
+      Serial.print(metOn[i]);
+    }
+  }
+  else if (numMet==1){
+    metOn[0]= 1;
+  }
+
+  // decide the first led number for each turned on meteor
+  if (metOn[0]==1){
+    met1[1]=random(0,6);
+    if (met1[1]%2==0){
+      met1Led = met1[1]+15+met1[1]*15;
+    }
+    else{
+      met1Led = met1[1]+15+(met1[1]-1)*15;
+    }
+  }
+  if (metOn[1]==1){
+    met2[1]=random(0,6);
+    if (met2[1]%2==0){
+      met2Led = met2[1]+15+met2[1]*15;
+    }
+    else{
+      met2Led = met2[1]+15+(met2[1]-1)*15;
+    }
+  }
+  if (metOn[2]==1){
+    met3[1]=random(0,6);
+    if (met3[1]%2==0){
+      met3Led = met3[1]+15+met3[1]*15;
+
+    }
+    else{
+      met3Led = met3[1]+15+(met3[1]-1)*15;
+    }
+  } 
+  Serial.println ("Meteor 1 row:");
+  Serial.print(met1[0]);
+  Serial.print(' ');
+  Serial.println ("meteor i column:");
+  Serial.println(met1[1]);
+  Serial.print(' ');  
+  Serial.println ("meteor 2 column:");
+  Serial.println(met2[1]);
+  Serial.print(' ');  
+  Serial.println ("meteor 2 row:");
+  Serial.println(met2[0]);
+  
+  metPos();
+
+//this is to clear the last row from unwanted leds
+  int lastRow[]={
+    0,31,32,49,63,64,95  };
+  for (int i=0;i<7;i++){
+    strip.setPixelColor(lastRow[i],0,0,0);
+  }
+  strip.show();
+}
+
+void metPos(){
+  strip.setPixelColor (met1Led,127,127,127);
+  strip.setPixelColor (met2Led,127,127,127);
+  strip.setPixelColor (met3Led,127,127,127);
+  strip.show();
+  delay(1000);
+
+  //meteor one
+  for (int i=0;i<15;i++){
+    if (metOn[0]==1&&met1[0]<16){
+      met1[0]=met1[0] + 1 ;
+//      Serial.println(met1[0]);
+      if (met1[1]%2==0){
+        met1Led=met1Led-1;
+        clearLed1=met1Led+1;
+      }
+      else{
+        met1Led=met1Led+1;
+        clearLed1=met1Led-1;
+      }
+    }
+    else {
+      metOn[0]=0;
+    }
+
+    //meteor two
+    if (metOn[1]==1&&met2[0]<16){
+      met2[0]=met2[0]+1;
+      if (met2[1]%2==0){
+        met2Led=met2Led-1;
+        clearLed2=met2Led+1;
+      }
+      else{
+        met2Led=met2Led+1;
+        clearLed2=met2Led-1;
+      }
+    }
+    else {
+      metOn[1]=0;
+    }
+
+    //meteor three
+    if (metOn[2]==1&&met3[0]<16){
+      met3[0]=met3[0]+1;
+      if (met3[1]%2==0){
+        met3Led=met3Led-1;
+        clearLed3=met3Led+1;
+      }
+      else{
+        met3Led=met3Led+1;
+        clearLed3=met3Led-1;
+      }
+    }
+    else {
+      metOn[2]=0;
+    }
+
+    strip.setPixelColor (met1Led,127,127,127);
+    strip.setPixelColor (met2Led,127,127,127);
+    strip.setPixelColor (met3Led,127,127,127);
+    strip.setPixelColor (clearLed1,0,0,0);
+    strip.setPixelColor (clearLed2,0,0,0);
+    strip.setPixelColor (clearLed3,0,0,0);
+    strip.show();
+    delay(1000);
+  }
+
+}
+
